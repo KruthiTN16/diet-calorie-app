@@ -6,27 +6,28 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  docker:
     runs-on: ubuntu-latest
 
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v3
 
-    - name: 🔐 Log in to Docker Hub
-      uses: docker/login-action@v3
+    - name: 🔐 Login to Docker Hub
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      uses: docker/login-action@v2
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: 🛠️ Build Docker image
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+    - name: 🛠️ Build Docker Image
       run: |
-        docker build -t $DOCKER_USERNAME/diet-calorie-app:latest .
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/diet-calorie-app:latest .
 
-    - name: 🚀 Push Docker image to Docker Hub
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+    - name: 🚀 Tag and Push Docker image
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
       run: |
-        docker push $DOCKER_USERNAME/diet-calorie-app:latest
+        IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/diet-calorie-app
+        docker tag $IMAGE:latest $IMAGE:${{ github.sha }}
+        docker push $IMAGE:latest
+        docker push $IMAGE:${{ github.sha }}
