@@ -3,7 +3,7 @@ name: Build and Push Docker Image to Docker Hub
 on:
   push:
     branches:
-      - main  # Runs on every push to the main branch
+      - main
 
 jobs:
   build-and-push:
@@ -20,9 +20,13 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: 🛠️ Build Docker image
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/diet-calorie-app:latest .
+        docker build -t $DOCKER_USERNAME/diet-calorie-app:latest .
 
     - name: 🚀 Push Docker image to Docker Hub
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       run: |
-        docker push ${{ secrets.DOCKER_USERNAME }}/diet-calorie-app:latest
+        docker push $DOCKER_USERNAME/diet-calorie-app:latest
